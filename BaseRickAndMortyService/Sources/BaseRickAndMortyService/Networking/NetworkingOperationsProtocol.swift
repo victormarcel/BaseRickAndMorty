@@ -9,6 +9,6 @@ import Foundation
 
 public protocol NetworkingOperationsProtocol: Sendable {
     
-    func fetch(from url: String) async -> Result<Data, Error>
-    func fetch<T: Decodable>(request: HttpRequestsProtocol) async -> Result<T, Error>
+    func fetch(from url: String) async throws -> Data
+    func fetch<T: Decodable>(request: HttpRequestsProtocol) async throws -> T
 }

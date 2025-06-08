@@ -7,5 +7,5 @@
 
 public protocol CharactersServiceProtocol: Sendable {
     
-    func fetchCharacters(page: Int) async -> Result<CharactersResponse, Error>
+    func fetchCharacters(page: Int) async throws -> CharactersResponse
 }
