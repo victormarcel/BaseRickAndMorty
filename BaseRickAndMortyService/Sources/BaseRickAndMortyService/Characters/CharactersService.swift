@@ -21,8 +21,8 @@ public final class CharactersService: CharactersServiceProtocol {
     
     // MARK: - INTERNAL METHODS
     
-    public func fetchCharacters(page: Int) async -> Result<CharactersResponse, Error> {
+    public func fetchCharacters(page: Int) async throws -> CharactersResponse {
         let httpRequest = CharacterHttpRequest(page: page)
-        return await networkingOperations.fetch(request: httpRequest)
+        return try await networkingOperations.fetch(request: httpRequest)
     }
 }

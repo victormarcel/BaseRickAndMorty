@@ -20,7 +20,7 @@ public class CharactersListViewController: UIViewController {
     
     private enum Constants {
         
-        static let delayTimeToFetchNextPage: Int = 1
+        static let delayTimeToFetchNextPage: UInt64 = 1_000_000_000
         static let navigationTitle = "Characters"
         
         enum TableView {
@@ -35,6 +35,7 @@ public class CharactersListViewController: UIViewController {
     // MARK: - PRIVATE PROPERTIES
     
     private let viewModel: CharactersListViewModel
+    private var savedListItems: [IndexPath] = []
     
     // MARK: - PUBLIC PROPERTIES
     
@@ -60,6 +61,11 @@ public class CharactersListViewController: UIViewController {
         setupLayout()
         setupLayoutConstraints()
         fetchCharacters()
+    }
+    
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        insertSavedListItemsIfNeeded()
     }
     
     // MARK: - UI
@@ -145,6 +151,24 @@ public class CharactersListViewController: UIViewController {
             cellView.image = UIImage(data: imageData)
         }
     }
+    
+    private func handlerNewListItems(_ indexPaths: [IndexPath]) {
+        let isScreenVisible = isViewLoaded && view.window != nil
+        if isScreenVisible {
+            tableView.insertRows(at: indexPaths, with: .automatic)
+        } else {
+            savedListItems = indexPaths
+        }
+    }
+    
+    private func insertSavedListItemsIfNeeded() {
+        guard !savedListItems.isEmpty else {
+            return
+        }
+        
+        tableView.insertRows(at: savedListItems, with: .automatic)
+        savedListItems.removeAll()
+    }
 }
 
 // MARK: - CHARACTERS LIST DELEGATE
@@ -152,16 +176,12 @@ public class CharactersListViewController: UIViewController {
 extension CharactersListViewController: CharactersListViewModelDelegate {
     
     public func charactersFirstPageFetchingDidSuccess() {
-        Task { @MainActor in
-            tableView.reloadData()
-        }
+        tableView.reloadData()
     }
     
-    public nonisolated func charactersNextPageFetchingDidSuccess(indexPaths: [IndexPath]) {
-        Task { @MainActor in
-            setActivityIndicatorVisibility(isHidden: true)
-            tableView.insertRows(at: indexPaths, with: .automatic)
-        }
+    public func charactersNextPageFetchingDidSuccess(indexPaths: [IndexPath]) {
+        setActivityIndicatorVisibility(isHidden: true)
+        handlerNewListItems(indexPaths)
     }
 }
 
@@ -187,8 +207,11 @@ extension CharactersListViewController: UITableViewDelegate {
         }
         
         showActivityIndicatorIfNeeded()
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(Constants.delayTimeToFetchNextPage)) { [weak self] in
-            self?.fetchCharacters()
+        Task {
+            try await Task.sleep(nanoseconds: Constants.delayTimeToFetchNextPage)
+            Task { @MainActor in
+                fetchCharacters()
+            }
         }
     }
 }

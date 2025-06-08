@@ -9,5 +9,5 @@ import Foundation
 
 public protocol ImageDownloaderProtocol: Sendable {
     
-    func fetchImageBy(url: String) async -> Result<Data, Error>
+    func fetchImageBy(url: String) async throws -> Data
 }

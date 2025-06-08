@@ -52,16 +52,15 @@ public final class CharactersListViewModel {
     func fetchCharacters() async {
         guard let nextCharactersPage, !isLoadingNextPage else { return }
         isLoadingNextPage = true
-        let response = await characterService.fetchCharacters(page: nextCharactersPage)
+        
+        do {
+            let charactersResponse = try await characterService.fetchCharacters(page: nextCharactersPage)
+            handleCharactersResponse(response: charactersResponse)
+        } catch {
+            // TODO: Handle Error
+        }
         
         isLoadingNextPage = false
-        switch response {
-        case .success(let charactersResponse):
-            handleCharactersResponse(response: charactersResponse)
-        case .failure:
-            // TODO: Handle error
-            return
-        }
     }
     
     func imageBy(character: Character) async -> Data? {
@@ -92,12 +91,13 @@ public final class CharactersListViewModel {
     }
     
     private func fecthCharacterImage(_ character: Character) async -> Data? {
-        let response = await imageDownloader.fetchImageBy(url: character.image)
-        switch response {
-        case .success(let data):
+        
+        
+        do {
+            let data = try await imageDownloader.fetchImageBy(url: character.image)
             cacheCharacterImage(character: character, imageData: data)
             return data
-        case .failure:
+        } catch {
             return nil
         }
     }
@@ -105,6 +105,7 @@ public final class CharactersListViewModel {
     private func cacheCharacterImage(character: Character, imageData: Data) {
         charactersImageCache[character.id] = imageData
     }
+    
     
     private func handleCharactersResponse(response: CharactersResponse) {
         if characters.isEmpty {

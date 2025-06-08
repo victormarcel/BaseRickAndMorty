@@ -15,24 +15,23 @@ public final class NetworkingOperations: NetworkingOperationsProtocol {
     
     // MARK: - INTERNAL METHODS
     
-    public func fetch(from url: String) async -> Result<Data, Error> {
+    public func fetch(from url: String) async throws -> Data {
         do {
             let url = try buildUrlFrom(string: url)
             let (data, _) = try await URLSession.shared.data(from: url)
-            return .success(data)
+            return data
         } catch let error {
-            return .failure(error)
+            throw error
         }
     }
     
-    public func fetch<T: Decodable>(request: HttpRequestsProtocol) async -> Result<T, Error> {
+    public func fetch<T: Decodable>(request: HttpRequestsProtocol) async throws -> T {
         do {
-            let url = try buildUrlFrom(string: request.url)
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let response: T = try decode(data: data)
-            return .success(response)
+            let data = try await fetch(from: request.url)
+            let decodedData: T = try decode(data: data)
+            return decodedData
         } catch let error {
-            return .failure(error)
+            throw error
         }
     }
     

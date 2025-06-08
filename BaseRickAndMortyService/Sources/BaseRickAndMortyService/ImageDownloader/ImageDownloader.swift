@@ -22,7 +22,7 @@ public final class ImageDownloader: ImageDownloaderProtocol {
     
     // MARK: - INTERNAL METHODS
     
-    public func fetchImageBy(url: String) async -> Result<Data, Error> {
-        return await networkingOperations.fetch(from: url)
+    public func fetchImageBy(url: String) async throws -> Data {
+        return try await networkingOperations.fetch(from: url)
     }
 }
